@@ -1,0 +1,173 @@
+package com.mtms.dao;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import com.mtms.model.Club;
+import com.mtms.model.ClubManager;
+
+@Repository
+public class ClubDao {
+	@Autowired
+	private JdbcTemplate template;
+	
+	public List<Club> clubs(
+			String whenDay, 
+			String whenDayOfTheWeek,
+			String whenTime,
+			String whereLocation,
+			String pageStart,
+			String pageNum,
+			String sortType,
+			String searchKeyword 
+			){
+
+		try{
+			String query = "select * from club where 1 ";
+			if ( searchKeyword !=null && !"".equals(searchKeyword))
+				query += "and (name like '%" + searchKeyword + "%' or notice like '%" + searchKeyword + "%') ";
+			if ( whenDayOfTheWeek !=null && !"".equals(whenDayOfTheWeek)){
+				query += "and (";
+				String[] whenDayOfTheWeekArray = whenDayOfTheWeek.split(",");
+				for (int idx = 0; idx < whenDayOfTheWeekArray.length; idx++){
+					if((whenDayOfTheWeekArray.length)-1 == idx){
+						query += "days like '%" + whenDayOfTheWeekArray[idx] + "%' ";
+					}else{
+						query += "days like '%" + whenDayOfTheWeekArray[idx] + "%' or ";
+					}
+				}
+				query += ") ";
+			}
+			if ( whereLocation !=null && !"".equals(whereLocation))
+				query += "and location like '%" + whereLocation + "%' ";
+			query += "order by id desc ";
+			if ( pageStart !=null && !"".equals(pageStart) && pageNum !=null && !"".equals(pageNum) )
+				query += "LIMIT " + pageStart + ", " + pageNum;
+			
+			System.out.println("query == " + query);
+			return template.query(query, new BeanPropertyRowMapper(Club.class));
+		}catch(EmptyResultDataAccessException e){
+			return new ArrayList<>();
+		}
+	}
+
+	public Club clubGet(Integer id){
+		try{
+			return template.queryForObject("select * from club where id = ?", new Object[] { id }, new BeanPropertyRowMapper(Club.class));
+		}catch(EmptyResultDataAccessException e){
+			return null;
+		}
+	}
+	public Club clubGetName(String name){
+		System.out.println("clubGetName name = " + name);
+		try{
+			return template.queryForObject("select * from club where name = ?", new Object[] { name }, new BeanPropertyRowMapper(Club.class));	
+		}catch(EmptyResultDataAccessException e){
+			return null;
+		}
+	}
+	public Club clubGetAdmin(String admin){
+		System.out.println("clubGetAdmin name = " + admin);
+		try{
+			return template.queryForObject("select * from club where admin = ?", new Object[] { admin }, new BeanPropertyRowMapper(Club.class));	
+		}catch(EmptyResultDataAccessException e){
+			return null;
+		}
+	}
+	public int clubAdd(Club club){
+		String q = "insert into club("
+				+ "name, "
+				+ "build_date, "
+				+ "member_max_count, "
+				+ "location, "
+				+ "stadium, "
+				+ "game_time, "
+				+ "days, "
+				+ "age, "
+				+ "uniform_info, "
+				+ "fee, "
+				+ "phone_number, "
+				+ "kakao_talk_id, "
+				+ "profile_image, "
+				+ "intro_image, "
+				+ "star_total, "
+				+ "star_count, "
+				+ "heart_total, "
+				+ "heart_count, "
+				+ "admin, "
+				+ "bookmark_count,"
+				+ "notice "
+				+ ") values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		String imgUrl = null;
+		if(club.getProfileImage() != null)
+			imgUrl = URLDecoder.decode(club.getProfileImage());
+		return template.update(q, 
+				club.getName(),
+				club.getBuildDate(),
+				club.getMemberMaxCount(),
+				club.getLocation(),
+				club.getStadium(),
+				club.getGameTime(),
+				club.getDays(),
+				club.getAge(),
+				club.getUniformInfo(),
+				club.getFee(),
+				club.getPhoneNumber(),
+				club.getKakaoTalkId(),
+				imgUrl,
+				club.getIntroImage(),
+				club.getStarTotal(),
+				club.getStarCount(),
+				club.getHeartTotal(),
+				club.getHeartCount(),
+				club.getAdmin(),
+				club.getBookmarkCount(),
+				club.getNotice()
+				);
+	}
+
+	public int bookmarkPointPlus(int clubId){
+		int bookmarkCount = template.queryForObject("select bookmark_count from club where id = ?", new Object[] { clubId }, Integer.class);
+		bookmarkCount = bookmarkCount + 1;
+		return template.update("update club set bookmark_count = ? where id = ?",bookmarkCount, clubId);
+	}
+	
+	public int bookmarkPointMinus(int clubId){
+		int bookmarkCount = template.queryForObject("select bookmark_count from club where id = ?", new Object[] { clubId }, Integer.class);
+		bookmarkCount = bookmarkCount - 1;
+		return template.update("update club set bookmark_count = ? where id = ?",bookmarkCount, clubId);
+	}
+	
+	
+	// club bookmark
+	
+	public int bookmarkAdd(int clubId, String userId){
+		return template.update("insert into club_bookmark(club_id, user_id, bookmark_date) values(?,?,now())", clubId, userId);
+	}
+	public int bookmarkDel(int clubId, String userId){
+		return template.update("delete from club_bookmark where club_id = ? and user_id = ?", clubId, userId);
+	}
+	
+	
+	
+	
+	// club manager
+	
+	public List<ClubManager> clubManagerList(String clubId, String userId){
+		return template.query("select * from club_manager where club_id = ? and user_id = ?", new Object[] { clubId, userId }, new BeanPropertyRowMapper(ClubManager.class));
+	}
+	public List<ClubManager> clubManagerClubList(String userId){
+		return template.query("select * from club_manager where user_id = ?", new Object[] { userId }, new BeanPropertyRowMapper(ClubManager.class));
+	}
+	public List<ClubManager> clubManagerUserList(String clubId){
+		return template.query("select * from club_manager where club_id = ?", new Object[] { clubId }, new BeanPropertyRowMapper(ClubManager.class));
+	}
+	public int addClubManager(Integer clubId, String userId){
+		return template.update("insert into club_manager(club_id, user_id, manager_date) values(?,?,now())", clubId, userId);
+	}
+}

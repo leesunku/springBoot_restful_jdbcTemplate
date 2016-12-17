@@ -1,0 +1,43 @@
+package com.mtms.model;
+
+public class PlayGame {
+	private int id;
+	private int clubId;
+	private String userId;
+	private String playTime;
+	public PlayGame() {
+		// TODO Auto-generated constructor stub
+	}
+	public PlayGame(int id, int clubId, String userId, String playTime) {
+		super();
+		this.id = id;
+		this.clubId = clubId;
+		this.userId = userId;
+		this.playTime = playTime;
+	}
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+	}
+	public int getClubId() {
+		return clubId;
+	}
+	public void setClubId(int clubId) {
+		this.clubId = clubId;
+	}
+	public String getUserId() {
+		return userId;
+	}
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+	public String getPlayTime() {
+		return playTime;
+	}
+	public void setPlayTime(String playTime) {
+		this.playTime = playTime;
+	}
+	
+}

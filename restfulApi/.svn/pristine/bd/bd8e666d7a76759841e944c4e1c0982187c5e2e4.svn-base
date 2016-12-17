@@ -1,0 +1,54 @@
+package com.mtms.model;
+
+public class ClubBookmark {
+	private String id;
+	private String clubId;
+	private String userId;
+	private String bookmarkDate;
+
+	public ClubBookmark() {
+		// TODO Auto-generated constructor stub
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getClubId() {
+		return clubId;
+	}
+
+	public void setClubId(String clubId) {
+		this.clubId = clubId;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+
+	public String getBookmarkDate() {
+		return bookmarkDate;
+	}
+
+	public void setBookmarkDate(String bookmarkDate) {
+		this.bookmarkDate = bookmarkDate;
+	}
+
+	public ClubBookmark(String id, String clubId, String userId, String bookmarkDate) {
+		super();
+		this.id = id;
+		this.clubId = clubId;
+		this.userId = userId;
+		this.bookmarkDate = bookmarkDate;
+	}
+	
+	
+}

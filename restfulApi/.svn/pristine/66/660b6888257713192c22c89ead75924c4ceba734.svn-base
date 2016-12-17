@@ -1,0 +1,143 @@
+package com.mtms.dao;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import com.mtms.model.Attend;
+import com.mtms.model.Club;
+
+@Repository
+public class AttendDao {
+	@Autowired
+	private JdbcTemplate template;
+	
+	
+	public List<Attend> attends(
+		String whenDay, 
+		String whenDayOfTheWeek,
+		String whenTime,
+		String whereLocation,
+		String pageStart,
+		String pageNum,
+		String sortType,
+		String searchKeyword 
+		){
+		
+		try{
+			
+			String query = "SELECT "+
+			"attend.id as 'id',"+
+			"attend.location as 'location',"+
+			"attend.member_count as 'member_count',"+
+			"attend.max_member as 'max_member',"+
+			"attend.stadium as 'stadium',"+
+			"attend.game_start_time as 'game_start_time',"+
+			"attend.game_end_time as 'game_end_time',"+
+			"attend.game_date as 'game_date',"+
+			"attend.fee as 'fee',"+
+			"attend.notice as 'notice',"+
+			"attend.vs as 'vs',"+
+			"club.id as 'club_id',"+
+			"club.name as 'club_name',"+
+			"club.profile_image as 'club_profile_image',"+
+			"club.star_total as 'club_star_total',"+
+			"club.star_count as 'club_star_count',"+
+			"club.heart_total as 'club_heart_total',"+
+			"club.heart_count as 'club_heart_count',"+
+			"club.bookmark_count as 'club_bookmark_count'"+
+			" FROM club, attend WHERE club.id = attend.club_id ";
+			if ( searchKeyword !=null && !"".equals(searchKeyword))
+				query += "and (club.name like '%" + searchKeyword + "%' or attend.notice like '%" + searchKeyword + "%') ";
+			if ( whenDay !=null && !"".equals(whenDay))
+				query += "and date(attend.game_date) = date('" + whenDay + "') ";
+			if ( whereLocation !=null && !"".equals(whereLocation))
+				query += "and attend.location like '%" + whereLocation + "%' ";
+			query += "order by attend.id desc ";
+			if ( pageStart !=null && !"".equals(pageStart) && pageNum !=null && !"".equals(pageNum) )
+				query += "LIMIT " + pageStart + ", " + pageNum;
+			
+			System.out.println("query == " + query);
+			return template.query(query, new BeanPropertyRowMapper(Attend.class));
+		}catch(EmptyResultDataAccessException e){
+			return new ArrayList<>();
+		}
+	}
+	
+	
+	
+	public List<Attend> attendList () {
+		return template.query("SELECT * FROM club, attend where club.id = attend.club_id", new BeanPropertyRowMapper(Attend.class));
+	}
+	public Attend attendGet(Integer id){
+		try{
+			return template.queryForObject("select * from attend where id = ?", new Object[] { id }, new BeanPropertyRowMapper(Attend.class));
+		}catch(EmptyResultDataAccessException e){
+			Map<String, Object> tryMap = new HashMap<>();
+			return (Attend) tryMap;
+		}
+	}
+	public List<Attend> getAttendByClubId(int clubId){
+		try{
+			return template.query("SELECT "+
+			"attend.id as 'id',"+
+			"attend.location as 'location',"+
+			"attend.member_count as 'member_count',"+
+			"attend.max_member as 'max_member',"+
+			"attend.stadium as 'stadium',"+
+			"attend.game_start_time as 'game_start_time',"+
+			"attend.game_end_time as 'game_end_time',"+
+			"attend.game_date as 'game_date',"+
+			"attend.fee as 'fee',"+
+			"attend.notice as 'notice',"+
+			"attend.vs as 'vs',"+
+			"club.id as 'club_id',"+
+			"club.name as 'club_name',"+
+			"club.profile_image as 'club_profile_image',"+
+			"club.star_total as 'club_star_total',"+
+			"club.star_count as 'club_star_count',"+
+			"club.heart_total as 'club_heart_total',"+
+			"club.heart_count as 'club_heart_count',"+
+			"club.bookmark_count as 'club_bookmark_count'"+
+			" FROM club, attend WHERE club.id = attend.club_id  and club_id = ?", new Object[] { clubId }, new BeanPropertyRowMapper(Attend.class));
+		}catch(EmptyResultDataAccessException e){
+			return new ArrayList<>();
+		}
+	}
+	
+	public int attendAdd(Attend attend){
+		String q = "insert into attend("
+				+ "club_id, "
+				+ "location, "
+				+ "member_count, "
+				+ "max_member, "
+				+ "stadium, "
+				+ "game_start_time, "
+				+ "game_end_time, "
+				+ "game_date, "
+				+ "fee, "
+				+ "notice, "
+				+ "vs"
+				+ ") values(?,?,?,0,?,?,?,?,?,?,?)";
+		
+		return template.update(q, 
+				attend.getClubId(),
+				attend.getLocation(),
+				attend.getMaxMember(),
+				attend.getStadium(),
+				attend.getGameStartTime(),
+				attend.getGameEndTime(),
+				attend.getGameDate(),
+				attend.getFee(),
+				attend.getNotice(),
+				attend.getVs()
+				);
+	}
+}

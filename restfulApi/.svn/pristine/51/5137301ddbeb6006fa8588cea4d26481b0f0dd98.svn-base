@@ -1,0 +1,77 @@
+package com.mtms.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import com.mtms.dao.AttendDao;
+import com.mtms.model.Attend;
+
+@RestController
+public class AttendController {
+	@Autowired
+	private AttendDao attendDao;
+	
+	@RequestMapping(value="/attends", method = RequestMethod.GET, produces = "application/json; charset=utf8")
+	public List<Attend> attends(
+			@RequestParam(required=false) String whenDay, 
+			@RequestParam(required=false) String whenDayOfTheWeek,
+			@RequestParam(required=false) String whenTime,
+			@RequestParam(required=false) String whereLocation,
+			@RequestParam(required=false) String pageStart,
+			@RequestParam(required=false) String pageNum,
+			@RequestParam(required=false) String sortType,
+			@RequestParam(required=false) String searchKeyword 
+			){
+		List<Attend> attendList = attendDao.attends(whenDay, whenDayOfTheWeek, whenTime, whereLocation, pageStart, pageNum, sortType, searchKeyword);
+		List<Attend> attendListAvg = new ArrayList<>();
+		for (Attend attend : attendList)
+			attendListAvg.add(pointReckoning(attend));
+		return attendListAvg;
+	}
+	
+	@RequestMapping(value="/attends/{id}", method = RequestMethod.GET, produces = "application/json; charset=utf8")
+	public Attend attendGet(@PathVariable Integer id){
+		return pointReckoning(attendDao.attendGet(id));
+	}
+	
+	@RequestMapping(value="/attends/getClubId/{clubId}", method = RequestMethod.GET, produces = "application/json; charset=utf8")
+	public List<Attend> getAttendByClubId(@PathVariable int clubId){
+		List<Attend> attendList = attendDao.getAttendByClubId(clubId);
+		List<Attend> attendListAvg = new ArrayList<>();
+		for (Attend attend : attendList)
+			attendListAvg.add(pointReckoning(attend));
+		return attendListAvg;
+	}
+	private Attend pointReckoning(Attend Attend){
+    	float heartAvg = (float) 0.0;
+	    if (Attend.getClubHeartTotal() != 0 && Attend.getClubHeartCount() != 0)
+	    	heartAvg = Float.parseFloat(String.format("%.1f",(float)Attend.getClubHeartTotal()/(float)Attend.getClubHeartCount()));
+	    Attend.setHeartAvg(heartAvg);
+		
+		float starAvg = (float) 0.0;
+	    if (Attend.getClubStarTotal() != 0 && Attend.getClubStarCount() != 0)
+	    	starAvg = Float.parseFloat(String.format("%.1f",(float)Attend.getClubStarTotal()/(float)Attend.getClubStarCount()));
+
+	    Attend.setStarAvg(starAvg);
+	    Attend.setAvgSum(Float.parseFloat(String.format("%.1f",heartAvg + starAvg)));
+		return Attend;
+	}
+	@RequestMapping(value="/attends", method = RequestMethod.POST, produces = "application/json; charset=utf8")
+	public String attendAdd(
+		@RequestBody Attend attend
+	){
+		int cnt = attendDao.attendAdd(attend);
+		if(cnt>0){
+			return "성공";
+		}else{
+			return "실패";
+		}	
+	}
+}

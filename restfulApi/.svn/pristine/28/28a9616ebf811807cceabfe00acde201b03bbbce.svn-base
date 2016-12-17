@@ -1,0 +1,52 @@
+package com.mtms.model;
+
+public class ClubManager {
+	private String id;
+	private Integer clubId;
+	private String userId;
+	private String managerDate;
+	
+	public ClubManager() {
+		// TODO Auto-generated constructor stub
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public Integer getClubId() {
+		return clubId;
+	}
+
+	public void setClubId(Integer clubId) {
+		this.clubId = clubId;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+
+	public String getManagerDate() {
+		return managerDate;
+	}
+
+	public void setManagerDate(String managerDate) {
+		this.managerDate = managerDate;
+	}
+
+	public ClubManager(String id, Integer clubId, String userId, String managerDate) {
+		super();
+		this.id = id;
+		this.clubId = clubId;
+		this.userId = userId;
+		this.managerDate = managerDate;
+	}	
+}
